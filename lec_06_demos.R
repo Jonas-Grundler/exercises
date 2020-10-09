@@ -1,5 +1,8 @@
 # Demos
 
+library(dplyr)
+library(nycflights13)
+
 ## 1. How many flights to Los Angeles (LAX) did each of the legacy carriers 
 ##    (AA, UA, DL or US) have in May from JFK, and what was their average duration?
     
