@@ -70,3 +70,25 @@ f = function(x,y,z){
 }
 f(1,2,x=3)
 #Answer: 4
+
+
+report = function(x) {
+  UseMethod("report")
+}
+report.default = function(x) {
+  "This class does not have a method defined."
+}
+report.integer = function(x) {
+  "I'm an integer!"
+}
+report.double = function(x) {
+  "I'm a double!"
+}
+report.numeric = function(x) {
+  "I'm a numeric!"
+}
+
+x = c(4,2,3.1)
+report(x)
+print(x)
+#first, typeof() is checked
