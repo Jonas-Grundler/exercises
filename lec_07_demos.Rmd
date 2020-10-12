@@ -1,0 +1,70 @@
+---
+title: "Lecture 7 Demos"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# tidyr
+
+## Wide vs. Long
+
+### Grades
+
+```{r}
+(grades = tibble::tribble(
+    ~name, ~hw_1, ~hw_2, ~hw_3, ~hw_4, ~proj_1, ~proj_2,
+  "Alice",    19,    19,    18,    20,      89,      95,
+  "Bob",      18,    20,    18,    16,      77,      88,
+  "Carol",    18,    20,    18,    17,      96,      99,
+  "Dave",     19,    19,    18,    19,      86,      82
+))
+```
+
+#### Semi-tidy approach
+
+```{r}
+
+```
+
+#### Fully tidy approach
+
+```{r}
+
+```
+
+
+## Rectangling
+
+### Starwars
+
+#### sw_people
+
+```{r}
+str( head(repurrrsive::sw_people, 3) )
+```
+
+#### sw_starships
+
+```{r}
+str( head(repurrrsive::sw_starships, 3) )
+```
+
+
+#### together
+
+```{r}
+
+```
+
+
+
+### Discog
+
+```{r}
+str( head(repurrrsive::discog, 2), max.level = 3)
+```
+
+
