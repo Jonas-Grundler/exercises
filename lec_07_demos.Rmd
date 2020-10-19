@@ -1,0 +1,256 @@
+---
+title: "Lecture 7 Demos"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(dplyr)
+library(tidyr)
+```
+
+
+# tidyr
+
+## Wide vs. Long
+
+### Grades
+
+```{r}
+(grades = tibble::tribble(
+    ~name, ~hw_1, ~hw_2, ~hw_3, ~hw_4, ~proj_1, ~proj_2,
+  "Alice",    19,    19,    18,    20,      89,      95,
+  "Bob",      18,    20,    18,    16,      77,      88,
+  "Carol",    18,    20,    18,    17,      96,      99,
+  "Dave",     19,    19,    18,    19,      86,      82
+))
+```
+
+#### Semi-tidy approach
+
+```{r}
+grades %>%
+  mutate(
+    hw_avg = (hw_1 + hw_2 + hw_3 + hw_4) / 80,
+    proj_avg = (proj_1 + proj_2) / 200
+  ) %>%
+  mutate(
+    overall_score = 0.5*hw_avg + 0.5*proj_avg
+  )
+```
+
+#### Fully tidy approach
+
+
+```{r}
+grades %>%
+  tidyr::pivot_longer(
+    cols = -name,
+    names_to = "assignment",
+    values_to = "score"
+  )
+```
+
+```{r}
+grades %>%
+  tidyr::pivot_longer(
+    cols = -name,
+    names_to = "assignment",
+    values_to = "score"
+  ) %>%
+  tidyr::separate(
+    col = assignment,
+    into = c("type", "id"),
+    sep = "_"
+  )
+```
+
+```{r}
+grades %>%
+  tidyr::pivot_longer(
+    cols = -name,
+    names_to = c("type", "id"),
+    names_sep = "_",
+    values_to = "score"
+  ) %>%
+  group_by(name, type) %>% 
+  summarize(total = sum(score), .groups = "drop") %>%
+  pivot_wider(
+    names_from = type,
+    values_from = total
+  ) %>%
+  mutate(
+    overall_score = 0.5 * (hw/80) + 0.5 * (proj/200)
+  )
+```
+
+
+## Rectangling
+
+```{r}
+library(repurrrsive)
+```
+
+### Starwars
+
+#### sw_people
+
+```{r}
+str( head(repurrrsive::sw_people, 3) )
+```
+
+```{r}
+repurrrsive::sw_people %>%
+  tibble::tibble(char = .) %>%
+  tidyr::unnest_wider(char)
+```
+
+```{r}
+(sw_chars = repurrrsive::sw_people %>%
+  tibble::tibble(char = .) %>%
+  tidyr::unnest_wider(char) %>%
+  select(name, starships) %>%
+  tidyr::unnest_longer(starships))
+```
+
+
+#### sw_starships
+
+```{r}
+str( head(repurrrsive::sw_starships, 3) )
+```
+
+```{r}
+(sw_ships = repurrrsive::sw_starships %>%
+  tibble::tibble(ships = .) %>%
+  unnest_wider(ships) %>%
+  select(starship_name = name, starship_url = url))
+```
+
+
+#### together
+
+```{r}
+dplyr::left_join(
+  sw_chars,
+  sw_ships,
+  by = c("starships" = "starship_url")
+)
+```
+
+```{r}
+dplyr::inner_join(
+  sw_chars,
+  sw_ships,
+  by = c("starships" = "starship_url")
+) %>%
+  select(-starships) %>%
+  group_by(name) %>%
+  summarize(
+    starships = list(starship_name)
+  )
+```
+
+```{r}
+dplyr::inner_join(
+  sw_chars,
+  sw_ships,
+  by = c("starships" = "starship_url")
+) %>%
+  select(-starships) %>%
+  group_by(name) %>%
+  summarize(
+    starships = paste(starship_name, collapse = ", "),
+    .groups = "drop"
+  )
+```
+
+
+
+### Discog
+
+```{r}
+str( head(repurrrsive::discog, 1), max.level = 2)
+```
+
+
+
+
+```{r}
+repurrrsive::discog %>%
+  tibble::tibble(discog = .) %>%
+  tidyr::hoist(
+    discog,
+    id = c("id"),
+    info = c("basic_information")
+  ) %>%
+  select(-discog)
+```
+
+```{r}
+str( repurrrsive::discog[[1]]$basic_information, max.level=3 )
+```
+
+
+```{r}
+repurrrsive::discog %>%
+  tibble::tibble(discog = .) %>%
+  tidyr::hoist(
+    discog,
+    id = c("id"),
+    info = c("basic_information")
+  ) %>%
+  select(-discog) %>%
+  tidyr::hoist(
+    info,
+    year = c("year"),
+    label = list("labels", 1, "name"),
+    artist = list("artists", 1, "name"),
+    format = list("formats", 1 , "name")
+  )
+```
+
+
+```{r}
+repurrrsive::discog %>%
+  tibble::tibble(discog = .) %>%
+  tidyr::hoist(
+    discog,
+    id = c("id"),
+    year = c("basic_information", "year"),
+    label = list("basic_information", "labels", 1, "name"),
+    artist = list("basic_information", "artists", 1, "name"),
+    format = list("basic_information", "formats", 1 , "name")
+  )
+```
+
+
+
+
+
+
+
+# dplyr group_by + summarize .groups argument
+
+```{r}
+x = tibble::tribble(
+  ~x, ~y, ~z,
+   1,  1,  1,
+   1,  2,  2,
+   1,  3,  3,
+   2,  1,  4,
+   2,  2,  5,
+   2,  3,  6
+)
+```
+
+
+```{r}
+x %>%
+  group_by(x,y) %>%
+  summarize(
+    sum_z = sum(z),
+    .groups = "drop" # , "drop_last", "keep"
+  )
+```
